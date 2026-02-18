@@ -9,11 +9,34 @@ st.set_page_config(
     layout="centered"
 )
 
-# 2. 스타일링
+# 2. 인터랙티브 스타일링 (버튼 강조 및 풍선 크기 조절)
 st.markdown("""
     <style>
     .main { background-color: #f8faff; }
     h1 { color: #004a99; text-align: center; margin-bottom: 0px; }
+    
+    /* 성모 약속 버튼 강조 효과 */
+    .stExpander {
+        border: 2px solid #004a99 !important;
+        border-radius: 15px !important;
+        background-color: #eef5ff !important;
+    }
+    
+    /* 클릭 유도 애니메이션 */
+    @keyframes blinking {
+        0% { background-color: #eef5ff; }
+        50% { background-color: #d0e3ff; }
+        100% { background-color: #eef5ff; }
+    }
+    .stExpanderSummary {
+        font-weight: bold !important;
+        color: #004a99 !important;
+        animation: blinking 2s infinite; /* 버튼이 살짝 깜빡이며 클릭 유도 */
+    }
+
+    /* 풍선 및 효과 가독성 조절 */
+    .stBalloon { transform: scale(0.6); } /* 풍선 크기를 60%로 축소 */
+
     .status-box {
         background-color: white;
         padding: 20px;
@@ -28,23 +51,17 @@ st.markdown("""
         color: #ff4b4b;
         text-align: center;
     }
-    .stMetric { text-align: center; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 기상청 및 미세먼지 설정 ---
-API_KEY = "fe1f2ac314b701d511deba080e04e3d5" # 여기에 선생님의 API 키를 꼭 넣어주세요!
+# --- 기상 및 공기질 설정 ---
+API_KEY = "fe1f2ac314b701d511deba080e04e3d5" # 박순용 선생님의 API 키를 입력하세요!
 CITY = "Daejeon"
-# 대전성모초 좌표 (정밀 미세먼지용)
-LAT = 36.325
-LON = 127.420
+LAT, LON = 36.325, 127.420
 
 def get_weather_data():
-    # 날씨 데이터
     weather_url = f"http://api.openweathermap.org/data/2.5/weather?q={CITY}&appid={API_KEY}&units=metric&lang=kr"
-    # 미세먼지 데이터
     air_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={LAT}&lon={LON}&appid={API_KEY}"
-    
     try:
         w_res = requests.get(weather_url).json()
         a_res = requests.get(air_url).json()
@@ -52,38 +69,29 @@ def get_weather_data():
     except:
         return None, None
 
-# 3. 상단 헤더
+# 3. 헤더 섹션
 st.title("🏫 대전성모초 운동장 요정")
-st.markdown("<p style='text-align: center; color: #666;'>성모초 오늘의 운동장 날씨와 공기 질!</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #666;'>성모 어린이들을 위한 기상 안내소</p>", unsafe_allow_html=True)
 
 w_data, a_data = get_weather_data()
 
 if w_data and w_data.get("main") and a_data:
-    temp = w_data["main"]["temp"]
-    hum = w_data["main"]["humidity"]
+    temp, hum = w_data["main"]["temp"], w_data["main"]["humidity"]
     weather_desc = w_data["weather"][0]["description"]
-    # 미세먼지 수치 (PM10 기준)
     pm10 = a_data['list'][0]['components']['pm10']
     
-    # 미세먼지 등급 판정
-    dust_status = "좋음"
-    if pm10 > 150: dust_status = "매우나쁨"
-    elif pm10 > 80: dust_status = "나쁨"
-    elif pm10 > 30: dust_status = "보통"
-
-    # 4. 운동장 활동 점수 계산 로직
+    # 4. 활동 점수 및 미세먼지 판정
+    dust_status = "좋음" if pm10 <= 30 else "보통" if pm10 <= 80 else "나쁨" if pm10 <= 150 else "매우나쁨"
     score = 100
     if temp > 30 or temp < 0: score -= 30
     if hum > 80: score -= 20
-    if pm10 > 80: score -= 40 # 미세먼지 나쁨 이상이면 대폭 감점
-    elif pm10 > 30: score -= 10
+    if pm10 > 80: score -= 40
     
-    # 눈/비 올 경우 점수 0점 처리
     is_raining = "비" in weather_desc or "소나기" in weather_desc
     is_snowing = "눈" in weather_desc
     if is_raining or is_snowing: score = 0
 
-    # 5. 데이터 카드 표시
+    # 5. 메인 대시보드
     st.markdown("<div class='status-box'>", unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("🌡️ 기온", f"{temp}°C")
@@ -92,41 +100,36 @@ if w_data and w_data.get("main") and a_data:
     c4.metric("☁️ 날씨", weather_desc)
     
     st.divider()
-    st.markdown(f"<p style='text-align: center; font-size: 1.2rem; color: #444;'>✨ 오늘의 운동장 활동 가능 점수 ✨</p>", unsafe_allow_html=True)
-    st.markdown(f"<p class='score-text'>{score}점 / 100점</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align: center; font-size: 1.1rem; color: #444;'>오늘의 운동장 활동 점수</p>", unsafe_allow_html=True)
+    st.markdown(f"<p class='score-text'>{score}점</p>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-    st.write("")
-
-    # 6. 상황별 요정의 상세 메시지
+    # 6. 요정의 메시지 및 시각 효과 (풍선 크기 조절됨)
     if is_raining:
-        st.info(f"☔ **요정의 메시지**: 현재 습도가 {hum}%로 매우 높고 비가 내리고 있어요! 운동장이 젖어 미끄러우니 오늘은 교실에서 안전하게 놀아요.")
+        st.info(f"☔ **요정의 메시지**: 현재 습도가 {hum}%예요! 비가 내려 운동장이 미끄러우니 실내에서 안전하게 놀아요.")
     elif is_snowing:
         st.snow()
-        st.warning(f"❄️ **요정의 메시지**: 하얀 눈이 내리고 있어요! 습도는 {hum}%이고 날씨가 추우니 복도나 계단에서 넘어지지 않도록 조심하세요.")
+        st.warning(f"❄️ **요정의 메시지**: 눈이 내려요! 습도는 {hum}%이고 길이 미끄러우니 성모 어린이들 모두 조심하세요.")
     elif score >= 80:
-        st.balloons()
-        st.success(f"✅ **요정의 메시지 ({score}점)**: 공기도 깨끗하고 날씨도 최고예요! 운동장에서 마음껏 뛰어놀아도 좋은 날입니다!")
-    elif pm10 > 80:
-        st.error(f"😷 **요정의 메시지 ({score}점)**: 미세먼지 농도가 높아요! 기관지 건강을 위해 오늘은 야외활동을 자제하고 마스크를 꼭 써주세요.")
-    elif score >= 50:
-        st.info(f"💡 **요정의 메시지 ({score}점)**: 놀기에 적당한 날씨예요. 중간중간 시원한 물을 마시며 휴식 시간을 가져보세요.")
+        st.balloons() # 작아진 풍선 효과
+        st.success(f"✅ **요정의 메시지 ({score}점)**: 날씨도 공기도 최고! 운동장에서 신나게 뛰어놀아요!")
     else:
-        st.warning(f"⚠️ **요정의 메시지 ({score}점)**: 기온이나 공기 상태가 조금 불안정해요. 짧고 굵게 놀고 일찍 들어오기로 약속!")
+        st.info("💡 **요정의 메시지**: 오늘 날씨에 맞춰 선생님과 함께 즐거운 시간을 보내봐요!")
 
-    # 7. 수업용 약속 섹션
-    st.divider()
-    with st.expander("📚 감사할 줄 아는 성모초 어린이의 '오늘의 성모 약속'"):
+    # 7. 클릭을 유도하는 '성모 약속' 장치
+    st.write("")
+    st.markdown("#### 👇 여기를 눌러 오늘의 약속을 확인하세요!")
+    with st.expander("✨ 오늘의 성모 약속 확인하기 (Click!)"):
         commitments = [
-            "친구의 마음을 다치게 하지 않는 고운 말을 사용하겠습니다.",
-            "급식실에서 차례차례 줄을 잘 서는 질서 있는 어린이가 되겠습니다.",
-            "선생님과 눈을 맞추며 즐겁게 공부하는 성모 어린이가 되겠습니다.",
-            "주변의 쓰레기를 먼저 줍는 깨끗한 마음을 실천하겠습니다."
+            "친구의 장점을 먼저 찾아 칭찬하는 어린이가 되겠습니다.",
+            "선생님의 가르침을 소중히 여기고 바른 자세로 공부하겠습니다.",
+            "학교의 공공물건을 내 물건처럼 아껴서 사용하겠습니다.",
+            "누가 보지 않아도 정직하게 행동하는 성모인이 되겠습니다."
         ]
         st.write(f"🌟 **{random.choice(commitments)}**")
 
 else:
-    st.error("요정이 기상청 서버에서 데이터를 가져오는 중이에요. 잠시 후 새로고침(F5) 해주세요!")
+    st.error("데이터를 불러오는 중입니다. 잠시만 기다려주세요!")
 
 # 8. 푸터
 st.markdown("---")
