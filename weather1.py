@@ -9,63 +9,70 @@ st.set_page_config(
     layout="centered"
 )
 
-# 2. 아이들 취향 저격 스타일링 (글씨체, 점수 크기, 풍선 조절)
+# 2. 스타일링 (빈칸 제거 및 영어 노출 차단)
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap');
 
-    /* 전체 글씨체를 부드러운 느낌의 Gaegu 폰트로 설정 */
+    /* 전체 글씨체 설정 */
     html, body, [class*="st-"] {
         font-family: 'Gaegu', cursive !important;
-        font-size: 1.2rem;
     }
 
     .main { background-color: #f0f7ff; }
     
-    /* 제목 스타일 */
+    /* 제목 스타일 - 마진을 조절하여 빈칸 제거 */
     .title-text {
         color: #004a99;
         text-align: center;
-        font-size: 3rem !important;
+        font-size: 3.5rem !important;
         font-weight: bold;
         margin-bottom: 0px;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+    .sub-title {
+        text-align: center; 
+        font-size: 1.8rem; 
+        margin-top: -10px; /* 위쪽 여백을 줄여 빈칸 제거 */
+        margin-bottom: 10px;
     }
 
-    /* 활동 점수 왕창 크게! */
+    /* 활동 점수판 디자인 */
     .score-container {
-        background: linear-gradient(135deg, #ffffff 0%, #e6f2ff 100%);
+        background: white;
         padding: 30px;
         border-radius: 30px;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         text-align: center;
-        border: 4px dashed #004a99;
-        margin: 20px 0;
+        border: 5px solid #004a99;
     }
     .score-number {
-        font-size: 80px !important;
+        font-size: 110px !important;
         font-weight: 900;
         color: #ff4b4b;
-        margin: 10px 0;
+        margin: 0px;
+        line-height: 1;
     }
 
-    /* 풍선 크기를 아주 작고 귀엽게 (기존보다 더 축소) */
-    .stBalloon { transform: scale(0.4) !important; }
-
-    /* 클릭 유도 버튼 효과 */
-    .stExpander {
-        border: 3px solid #ffcc00 !important;
-        border-radius: 20px !important;
-    }
+    /* 영어 라벨 및 화살표 아이콘 숨기기 (핵심!) */
+    [data-testid="stMetricLabel"] { display: none !important; }
+    [data-testid="stMetricValue"] { font-size: 2.2rem !important; color: #004a99 !important; }
+    
+    /* 성모 약속 박스의 영어(화살표 기호) 숨기기 */
+    .stExpander svg { display: none !important; } 
     .stExpanderSummary {
         background-color: #fff9e6 !important;
-        font-size: 1.5rem !important;
+        font-size: 1.6rem !important;
         color: #d4a017 !important;
+        border-radius: 15px !important;
+        padding: 10px !important;
     }
+
+    /* 풍선 크기 축소 */
+    .stBalloon { transform: scale(0.2) !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 기상 및 공기질 설정 ---
+# --- 기상 및 공기질 설정 (API 키 적용됨) ---
 API_KEY = "fe1f2ac314b701d511deba080e04e3d5" 
 CITY = "Daejeon"
 LAT, LON = 36.325, 127.420
@@ -80,9 +87,9 @@ def get_weather_data():
     except:
         return None, None
 
-# 3. 헤더 섹션
+# 3. 헤더 섹션 (빈칸 없이 타이트하게 배치)
 st.markdown("<p class='title-text'>🧚 운동장 요정의 속삭임</p>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; font-size: 1.5rem;'>성모 어린이들 모여라! 오늘 운동장은 어떤 기분일까? ✨</p>", unsafe_allow_html=True)
+st.markdown("<p class='sub-title'>성모 어린이들 모여라! 오늘 운동장은 어떤 기분일까? ✨</p>", unsafe_allow_html=True)
 
 w_data, a_data = get_weather_data()
 
@@ -91,8 +98,8 @@ if w_data and w_data.get("main") and a_data:
     weather_desc = w_data["weather"][0]["description"]
     pm10 = a_data['list'][0]['components']['pm10']
     
-    # 4. 활동 점수 및 미세먼지 판정
-    dust_status = "꿀공기🍯" if pm10 <= 30 else "괜찮아👍" if pm10 <= 80 else "안돼요😷" if pm10 <= 150 else "위험해🚨"
+    # 4. 점수 계산
+    dust_status = "꿀공기🍯" if pm10 <= 30 else "보통👍" if pm10 <= 80 else "안돼요😷"
     score = 100
     if temp > 30 or temp < 0: score -= 30
     if hum > 80: score -= 20
@@ -102,47 +109,44 @@ if w_data and w_data.get("main") and a_data:
     is_snowing = "눈" in weather_desc
     if is_raining or is_snowing: score = 0
 
-    # 5. 메인 점수판 (왕관 디자인 추가)
+    # 5. 메인 점수판 (영어 없이 숫자와 아이콘만)
     st.markdown("<div class='score-container'>", unsafe_allow_html=True)
-    st.markdown(f"<h3>👑 오늘의 운동장 놀이 점수</h3>", unsafe_allow_html=True)
-    st.markdown(f"<p class='score-number'>{score}점</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='font-size: 1.6rem; color: #004a99; margin-bottom: 0;'>👑 오늘의 운동장 점수</p>", unsafe_allow_html=True)
+    st.markdown(f"<p class='score-number'>{score}</p>", unsafe_allow_html=True)
     
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("🌡️ 기온", f"{temp}°C")
-    c2.metric("💧 습도", f"{hum}%")
-    c3.metric("😷 먼지", dust_status)
-    c4.metric("☁️ 날씨", "맑음☀️" if "맑음" in weather_desc else "구름☁️")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("", f"🌡️ {temp}°C")
+    c2.metric("", f"💧 {hum}%")
+    c3.metric("", f"😷 {dust_status}")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # 6. 상황별 요정의 재치 있는 멘트
+    # 6. 상황별 재치 있는 멘트
     if is_raining:
-        st.info(f"☔ **촉촉한 요정**: 지금 하늘에서 비가 내려서 운동장이 세수 중이에요! 습도가 {hum}%라 끈적하니 교실에서 뽀송하게 놀아요!")
+        st.info(f"☔ **촉촉 요정**: 운동장이 세수하고 있어요! 습도는 {hum}%! 교실에서 친구들과 뽀송하게 놀아요!")
     elif is_snowing:
         st.snow()
-        st.warning(f"❄️ **꽁꽁 요정**: 와! 하얀 가루가 내려요! 습도는 {hum}%! 길이 미끄러우니 펭귄처럼 조심조심 걷기 약속!")
+        st.warning(f"❄️ **꽁꽁 요정**: 눈이 내려요! 습도는 {hum}%! 길이 미끄러우니 펭귄처럼 조심조심!")
     elif score >= 85:
-        st.balloons() # 더 작고 귀여워진 풍선
-        st.success(f"🥳 **신난 요정 ({score}점)**: 대박! 공기도 {dust_status}이고 날씨가 끝내줘요! 지금 안 나가면 손해라구!")
-    elif pm10 > 80:
-        st.error(f"⚠️ **먼지 요정 ({score}점)**: 켁켁! 공기 속에 나쁜 먼지가 숨어있어요! 오늘은 교실에서 보드게임 왕이 되어볼까요?")
+        st.balloons()
+        st.success(f"🥳 **신난 요정 ({score}점)**: 대박! 날씨가 끝내줘요! 지금 안 나가면 손해!")
     else:
-        st.info(f"🤔 **고민 중인 요정 ({score}점)**: 기온이 {temp}°C라 조금 애매해요! 나갈 거라면 선생님 말씀 잘 듣고 조심히 놀기!")
+        st.info(f"🤔 **고민 요정**: {temp}°C라 조금 애매해요! 나간다면 선생님 말씀 잘 듣기!")
 
-    # 7. 클릭 유도 '성모 약속' (애니메이션 강조)
+    # 7. 성모 약속 (클릭 유도)
     st.write("")
     st.markdown("### 👇 아래 노란 상자를 눌러 '오늘의 보물'을 찾으세요!")
-    with st.expander("🎁 오늘의 성모 약속 (두근두근 클릭!)"):
+    with st.expander("🎁 오늘의 성모 약속 (두근두근 클릭!)", expanded=False):
         commitments = [
-            "😊 친구의 눈을 보며 예쁘게 웃어주는 친절 대장이 되겠습니다!",
+            "😊 친구의 장점을 먼저 찾아 예쁘게 웃어주는 친절 대장이 될게요!",
             "🏫 우리 학교 복도를 사뿐사뿐, 구름 위를 걷듯 조용히 다닐게요!",
-            "💡 궁금한 게 생기면 참지 말고 눈을 반짝이며 질문하겠습니다!",
+            "💡 궁금한 게 생기면 눈을 반짝이며 질문하는 멋진 성모인이 될게요!",
             "🧹 내가 머문 자리는 요정이 다녀간 듯 깨끗하게 정리하겠습니다!"
         ]
         st.write(f"### 🌟 **{random.choice(commitments)}**")
 
 else:
-    st.error("요정이 하늘에서 데이터를 가져오다가 잠시 길을 잃었나 봐요! 다시 새로고침 해주세요.")
+    st.error("데이터를 불러오는 중이에요! 잠시 후 새로고침 해주세요.")
 
-# 8. 푸터 (제작자만 깔끔하게 표시)
+# 8. 푸터
 st.markdown("---")
-st.markdown("<p style='text-align: center; color: #888; font-size: 1rem;'><b>제작: 박순용 선생님</b><br>© 2026 대전성모초등학교 창의융합 교실</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #888;'><b>제작: 박순용 선생님</b><br>© 2026 대전성모초등학교 창의융합 교실</p>", unsafe_allow_html=True)
