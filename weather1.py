@@ -46,7 +46,7 @@ def get_weather():
 
 # 3. 상단 헤더
 st.title("🏫 대전성모초 운동장 요정")
-st.markdown("<p style='text-align: center; color: #666;'>박순용 선생님과 함께하는 과학적인 운동장 판정!</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #666;'> 오늘의 활동 가능한 운동장 판정 점수 !</p>", unsafe_allow_html=True)
 
 data = get_weather()
 
@@ -90,7 +90,7 @@ if data and data.get("main"):
 
     # 7. 수업용 약속 (박순용 선생님 커스텀)
     st.divider()
-    with st.expander("📚 박순용 선생님과 함께하는 '오늘의 성모 약속'"):
+    with st.expander("📚 행복한 '오늘의 성모 약속'"):
         commitments = [
             "친구에게 따뜻한 미소로 먼저 인사하겠습니다.",
             "내가 쓴 자리는 스스로 정리하는 멋진 성모인이 되겠습니다.",
@@ -105,3 +105,4 @@ else:
 # 8. 하단 푸터
 st.markdown("---")
 st.markdown("<p style='text-align: center; color: #888;'>© 2026 대전성모초등학교 창의융합 수업 도구<br><b>제작: 박순용 선생님</b></p>", unsafe_allow_html=True)
+
