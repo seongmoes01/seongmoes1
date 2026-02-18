@@ -66,8 +66,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- 기상 및 공기질 설정 ---
-API_KEY = "fe1f2ac314b701d511deba080e04e3d5
-" 
+API_KEY = "fe1f2ac314b701d511deba080e04e3d5" 
 CITY = "Daejeon"
 LAT, LON = 36.325, 127.420
 
