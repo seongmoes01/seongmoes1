@@ -5,57 +5,69 @@ import random
 # 1. 페이지 설정
 st.set_page_config(
     page_title="대전성모초 운동장 요정",
-    page_icon="🏫",
+    page_icon="🧚",
     layout="centered"
 )
 
-# 2. 인터랙티브 스타일링 (버튼 강조 및 풍선 크기 조절)
+# 2. 아이들 취향 저격 스타일링 (글씨체, 점수 크기, 풍선 조절)
 st.markdown("""
     <style>
-    .main { background-color: #f8faff; }
-    h1 { color: #004a99; text-align: center; margin-bottom: 0px; }
-    
-    /* 성모 약속 버튼 강조 효과 */
-    .stExpander {
-        border: 2px solid #004a99 !important;
-        border-radius: 15px !important;
-        background-color: #eef5ff !important;
+    @import url('https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&display=swap');
+
+    /* 전체 글씨체를 부드러운 느낌의 Gaegu 폰트로 설정 */
+    html, body, [class*="st-"] {
+        font-family: 'Gaegu', cursive !important;
+        font-size: 1.2rem;
     }
+
+    .main { background-color: #f0f7ff; }
     
-    /* 클릭 유도 애니메이션 */
-    @keyframes blinking {
-        0% { background-color: #eef5ff; }
-        50% { background-color: #d0e3ff; }
-        100% { background-color: #eef5ff; }
+    /* 제목 스타일 */
+    .title-text {
+        color: #004a99;
+        text-align: center;
+        font-size: 3rem !important;
+        font-weight: bold;
+        margin-bottom: 0px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* 활동 점수 왕창 크게! */
+    .score-container {
+        background: linear-gradient(135deg, #ffffff 0%, #e6f2ff 100%);
+        padding: 30px;
+        border-radius: 30px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        text-align: center;
+        border: 4px dashed #004a99;
+        margin: 20px 0;
+    }
+    .score-number {
+        font-size: 80px !important;
+        font-weight: 900;
+        color: #ff4b4b;
+        margin: 10px 0;
+    }
+
+    /* 풍선 크기를 아주 작고 귀엽게 (기존보다 더 축소) */
+    .stBalloon { transform: scale(0.4) !important; }
+
+    /* 클릭 유도 버튼 효과 */
+    .stExpander {
+        border: 3px solid #ffcc00 !important;
+        border-radius: 20px !important;
     }
     .stExpanderSummary {
-        font-weight: bold !important;
-        color: #004a99 !important;
-        animation: blinking 2s infinite; /* 버튼이 살짝 깜빡이며 클릭 유도 */
-    }
-
-    /* 풍선 및 효과 가독성 조절 */
-    .stBalloon { transform: scale(0.6); } /* 풍선 크기를 60%로 축소 */
-
-    .status-box {
-        background-color: white;
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-        border-top: 5px solid #004a99;
-        margin-top: 20px;
-    }
-    .score-text {
-        font-size: 35px;
-        font-weight: bold;
-        color: #ff4b4b;
-        text-align: center;
+        background-color: #fff9e6 !important;
+        font-size: 1.5rem !important;
+        color: #d4a017 !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
 # --- 기상 및 공기질 설정 ---
-API_KEY = "fe1f2ac314b701d511deba080e04e3d5" # 박순용 선생님의 API 키를 입력하세요!
+API_KEY = "fe1f2ac314b701d511deba080e04e3d5
+" 
 CITY = "Daejeon"
 LAT, LON = 36.325, 127.420
 
@@ -70,8 +82,8 @@ def get_weather_data():
         return None, None
 
 # 3. 헤더 섹션
-st.title("🏫 대전성모초 운동장 요정")
-st.markdown("<p style='text-align: center; color: #666;'>성모 어린이들을 위한 박순용 선생님의 기상 안내소</p>", unsafe_allow_html=True)
+st.markdown("<p class='title-text'>🧚 운동장 요정의 속삭임</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 1.5rem;'>성모 어린이들 모여라! 오늘 운동장은 어떤 기분일까? ✨</p>", unsafe_allow_html=True)
 
 w_data, a_data = get_weather_data()
 
@@ -81,7 +93,7 @@ if w_data and w_data.get("main") and a_data:
     pm10 = a_data['list'][0]['components']['pm10']
     
     # 4. 활동 점수 및 미세먼지 판정
-    dust_status = "좋음" if pm10 <= 30 else "보통" if pm10 <= 80 else "나쁨" if pm10 <= 150 else "매우나쁨"
+    dust_status = "꿀공기🍯" if pm10 <= 30 else "괜찮아👍" if pm10 <= 80 else "안돼요😷" if pm10 <= 150 else "위험해🚨"
     score = 100
     if temp > 30 or temp < 0: score -= 30
     if hum > 80: score -= 20
@@ -91,46 +103,47 @@ if w_data and w_data.get("main") and a_data:
     is_snowing = "눈" in weather_desc
     if is_raining or is_snowing: score = 0
 
-    # 5. 메인 대시보드
-    st.markdown("<div class='status-box'>", unsafe_allow_html=True)
+    # 5. 메인 점수판 (왕관 디자인 추가)
+    st.markdown("<div class='score-container'>", unsafe_allow_html=True)
+    st.markdown(f"<h3>👑 오늘의 운동장 놀이 점수</h3>", unsafe_allow_html=True)
+    st.markdown(f"<p class='score-number'>{score}점</p>", unsafe_allow_html=True)
+    
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("🌡️ 기온", f"{temp}°C")
     c2.metric("💧 습도", f"{hum}%")
     c3.metric("😷 먼지", dust_status)
-    c4.metric("☁️ 날씨", weather_desc)
-    
-    st.divider()
-    st.markdown(f"<p style='text-align: center; font-size: 1.1rem; color: #444;'>오늘의 운동장 활동 점수</p>", unsafe_allow_html=True)
-    st.markdown(f"<p class='score-text'>{score}점</p>", unsafe_allow_html=True)
+    c4.metric("☁️ 날씨", "맑음☀️" if "맑음" in weather_desc else "구름☁️")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # 6. 요정의 메시지 및 시각 효과 (풍선 크기 조절됨)
+    # 6. 상황별 요정의 재치 있는 멘트
     if is_raining:
-        st.info(f"☔ **요정의 메시지**: 현재 습도가 {hum}%예요! 비가 내려 운동장이 미끄러우니 실내에서 안전하게 놀아요.")
+        st.info(f"☔ **촉촉한 요정**: 지금 하늘에서 비가 내려서 운동장이 세수 중이에요! 습도가 {hum}%라 끈적하니 교실에서 뽀송하게 놀아요!")
     elif is_snowing:
         st.snow()
-        st.warning(f"❄️ **요정의 메시지**: 눈이 내려요! 습도는 {hum}%이고 길이 미끄러우니 성모 어린이들 모두 조심하세요.")
-    elif score >= 80:
-        st.balloons() # 작아진 풍선 효과
-        st.success(f"✅ **요정의 메시지 ({score}점)**: 날씨도 공기도 최고! 운동장에서 신나게 뛰어놀아요!")
+        st.warning(f"❄️ **꽁꽁 요정**: 와! 하얀 가루가 내려요! 습도는 {hum}%! 길이 미끄러우니 펭귄처럼 조심조심 걷기 약속!")
+    elif score >= 85:
+        st.balloons() # 더 작고 귀여워진 풍선
+        st.success(f"🥳 **신난 요정 ({score}점)**: 대박! 공기도 {dust_status}이고 날씨가 끝내줘요! 지금 안 나가면 손해라구!")
+    elif pm10 > 80:
+        st.error(f"⚠️ **먼지 요정 ({score}점)**: 켁켁! 공기 속에 나쁜 먼지가 숨어있어요! 오늘은 교실에서 보드게임 왕이 되어볼까요?")
     else:
-        st.info("💡 **요정의 메시지**: 오늘 날씨에 맞춰 선생님과 함께 즐거운 시간을 보내봐요!")
+        st.info(f"🤔 **고민 중인 요정 ({score}점)**: 기온이 {temp}°C라 조금 애매해요! 나갈 거라면 선생님 말씀 잘 듣고 조심히 놀기!")
 
-    # 7. 클릭을 유도하는 '성모 약속' 장치
+    # 7. 클릭 유도 '성모 약속' (애니메이션 강조)
     st.write("")
-    st.markdown("#### 👇 여기를 눌러 오늘의 약속을 확인하세요!")
-    with st.expander("✨ 오늘의 성모 약속 확인하기 (Click!)"):
+    st.markdown("### 👇 아래 노란 상자를 눌러 '오늘의 보물'을 찾으세요!")
+    with st.expander("🎁 오늘의 성모 약속 (두근두근 클릭!)"):
         commitments = [
-            "친구의 장점을 먼저 찾아 칭찬하는 어린이가 되겠습니다.",
-            "선생님의 가르침을 소중히 여기고 바른 자세로 공부하겠습니다.",
-            "학교의 공공물건을 내 물건처럼 아껴서 사용하겠습니다.",
-            "누가 보지 않아도 정직하게 행동하는 성모인이 되겠습니다."
+            "😊 친구의 눈을 보며 예쁘게 웃어주는 친절 대장이 되겠습니다!",
+            "🏫 우리 학교 복도를 사뿐사뿐, 구름 위를 걷듯 조용히 다닐게요!",
+            "💡 궁금한 게 생기면 참지 말고 눈을 반짝이며 질문하겠습니다!",
+            "🧹 내가 머문 자리는 요정이 다녀간 듯 깨끗하게 정리하겠습니다!"
         ]
-        st.write(f"🌟 **{random.choice(commitments)}**")
+        st.write(f"### 🌟 **{random.choice(commitments)}**")
 
 else:
-    st.error("데이터를 불러오는 중입니다. 잠시만 기다려주세요!")
+    st.error("요정이 하늘에서 데이터를 가져오다가 잠시 길을 잃었나 봐요! 다시 새로고침 해주세요.")
 
-# 8. 푸터
+# 8. 푸터 (제작자만 깔끔하게 표시)
 st.markdown("---")
-st.markdown("<p style='text-align: center; color: #888;'>© 2026 대전성모초등학교 창의융합 수업 도구<br><b>제작: 박순용 선생님</b></p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: #888; font-size: 1rem;'><b>제작: 박순용 선생님</b><br>© 2026 대전성모초등학교 창의융합 교실</p>", unsafe_allow_html=True)
